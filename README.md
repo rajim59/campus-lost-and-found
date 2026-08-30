@@ -1,92 +1,129 @@
-# Campus Lost & Found
+## 📁 Frontend — File & Folder Structure with Purpose
 
-A full-stack web application for managing lost and found items within a campus.
-
-## Features
-
-* User Registration & Login
-* Lost & Found Posts
-* Search & Filtering
-* Claim Management
-* Admin Panel
-
-## Tech Stack
-
-* Frontend: React
-* Backend: Node.js & Express
-* Database: MongoDB
-
-## Development
-
-All development work is done on separate branches and merged into the `main` branch through Pull Requests.
-
-
+```
 frontend/
-├── public/
-│   └── favicon.ico
+├── public/                          # Static files served as-is
+│   └── favicon.ico                  # Browser tab icon
+│
 ├── src/
 │   ├── components/
-│   │   ├── ui/                    ← 🔒 LOCKED (আপনি বানাবেন)
-│   │   │   ├── Button.jsx
-│   │   │   ├── Input.jsx
-│   │   │   ├── Select.jsx
-│   │   │   ├── TextArea.jsx
-│   │   │   ├── Badge.jsx
-│   │   │   ├── Modal.jsx
-│   │   │   ├── Spinner.jsx
-│   │   │   ├── SkeletonCard.jsx
-│   │   │   ├── EmptyState.jsx
-│   │   │   ├── Pagination.jsx
-│   │   │   └── Avatar.jsx
+│   │   ├── ui/                      # 🔒 LOCKED – Reusable design system components
+│   │   │   ├── Button.jsx           # Button variants, loading state
+│   │   │   ├── Input.jsx            # Text input with label, error, icon
+│   │   │   ├── Select.jsx           # Dropdown with label, options
+│   │   │   ├── TextArea.jsx         # Multi-line text input
+│   │   │   ├── Badge.jsx            # Status badges (Lost, Found, etc.)
+│   │   │   ├── Modal.jsx            # Centered overlay modal
+│   │   │   ├── Spinner.jsx          # Loading spinner
+│   │   │   ├── SkeletonCard.jsx     # Loading placeholder for cards
+│   │   │   ├── EmptyState.jsx       # Empty result placeholder
+│   │   │   ├── Pagination.jsx       # Page navigation
+│   │   │   └── Avatar.jsx           # User profile image or initials
 │   │   │
-│   │   ├── layout/                ← 🔒 LOCKED (আপনি বানাবেন)
-│   │   │   ├── PublicLayout.jsx
-│   │   │   ├── AdminLayout.jsx
-│   │   │   ├── Navbar.jsx
-│   │   │   └── Footer.jsx
+│   │   ├── layout/                  # 🔒 LOCKED – Page structural layouts
+│   │   │   ├── Navbar.jsx           # Top navigation bar
+│   │   │   ├── Footer.jsx           # Footer with dark background
+│   │   │   ├── PublicLayout.jsx     # Layout for public pages
+│   │   │   └── AdminLayout.jsx      # Layout for admin pages (sidebar)
 │   │   │
-│   │   └── shared/                ← 🔓 OPEN (টিম মেম্বাররা ব্যবহার করতে পারবে, নতুন কম্পোনেন্ট যোগ করতে পারবে)
-│   │       ├── PostCard.jsx
-│   │       ├── FilterPills.jsx
-│   │       ├── SearchBar.jsx
-│   │       └── ... (যেকোনো পেজ-স্পেসিফিক কম্পোনেন্ট)
+│   │   ├── routing/                 # 🔒 LOCKED – Route protection wrappers
+│   │   │   ├── ProtectedRoute.jsx   # Redirect to login if not authenticated
+│   │   │   └── AdminRoute.jsx       # Redirect to home if not admin
+│   │   │
+│   │   └── shared/                  # 🔓 OPEN – Page-specific reusable components
+│   │       ├── PostCard.jsx         # Card used on Home page (team will create)
+│   │       ├── FilterPills.jsx      # Category filter chips (team will create)
+│   │       └── ClaimModal.jsx       # Claim submission modal (team will create)
 │   │
-│   ├── pages/                     ← 🔓 OPEN (টিম মেম্বাররা এখানে কাজ করবে)
-│   │   ├── Home.jsx
-│   │   ├── PostDetail.jsx
-│   │   ├── Login.jsx
-│   │   ├── Register.jsx
-│   │   ├── About.jsx
-│   │   ├── NotFound.jsx
-│   │   ├── CreatePost.jsx
-│   │   ├── EditPost.jsx
-│   │   ├── MyPosts.jsx
-│   │   ├── SavedPosts.jsx
-│   │   ├── Profile.jsx
-│   │   └── admin/
-│   │       ├── AdminDashboard.jsx
-│   │       ├── AdminUsers.jsx
-│   │       ├── AdminPosts.jsx
-│   │       └── AdminClaims.jsx
+│   ├── pages/                       # 🔓 OPEN – All page components
+│   │   ├── Home.jsx                 # Feed with search, filters, post grid
+│   │   ├── PostDetail.jsx           # Single post details and claim button
+│   │   ├── Login.jsx                # User login form
+│   │   ├── Register.jsx             # User registration form
+│   │   ├── About.jsx                # How it works / info page
+│   │   ├── NotFound.jsx             # 404 error page
+│   │   ├── CreatePost.jsx           # Create lost/found post
+│   │   ├── EditPost.jsx             # Edit own post
+│   │   ├── MyPosts.jsx              # List of current user's posts
+│   │   ├── SavedPosts.jsx           # Bookmarked posts
+│   │   ├── Profile.jsx              # User profile and settings
+│   │   └── admin/                   # Admin pages (separate sub-folder)
+│   │       ├── AdminDashboard.jsx   # Admin overview stats
+│   │       ├── AdminUsers.jsx       # User verification (approve/reject)
+│   │       ├── AdminPosts.jsx       # Post moderation
+│   │       └── AdminClaims.jsx      # Claim management
 │   │
-│   ├── contexts/                  ← 🔒 LOCKED (আপনি বানাবেন)
-│   │   └── AuthContext.jsx
+│   ├── contexts/                    # 🔒 LOCKED – React Context providers
+│   │   └── AuthContext.jsx          # Authentication state, login/logout
 │   │
-│   ├── services/                  ← 🔒 LOCKED (আপনি বানাবেন)
-│   │   ├── api.js
-│   │   ├── authService.js
-│   │   ├── postService.js
-│   │   ├── claimService.js
-│   │   └── adminService.js
+│   ├── services/                    # 🔒 LOCKED – API communication layer
+│   │   ├── api.js                   # Axios instance with interceptors
+│   │   ├── authService.js           # Auth API calls (register, login, getMe)
+│   │   ├── postService.js           # Post API calls (CRUD, list, claim)
+│   │   ├── claimService.js          # Claim API calls
+│   │   └── adminService.js          # Admin API calls
 │   │
-│   ├── utils/                     ← 🔓 OPEN (প্রয়োজনে টিম মেম্বাররা helper যোগ করতে পারবে)
-│   │   ├── constants.js
-│   │   └── helpers.js
+│   ├── utils/                       # 🔒 LOCKED – Constants and helper functions
+│   │   ├── constants.js             # Fixed lists (categories, locations, etc.)
+│   │   └── helpers.js               # Formatting functions (date, timeAgo)
 │   │
-│   ├── App.jsx                    ← 🔒 LOCKED (রাউটিং স্ট্রাকচার)
-│   ├── main.jsx                   ← 🔒 LOCKED
-│   └── index.css                  ← 🔒 LOCKED (গ্লোবাল স্টাইল, টেইলউইন্ড)
+│   ├── App.jsx                      # 🔒 LOCKED – Main routing component
+│   ├── main.jsx                     # 🔒 LOCKED – React DOM render entry
+│   └── index.css                    # 🔒 LOCKED – Global styles (Tailwind)
 │
-├── tailwind.config.js             ← 🔒 LOCKED
-├── index.html                     ← 🔒 LOCKED
-└── package.json                   ← 🔒 LOCKED
+├── tailwind.config.js               # 🔒 LOCKED – Design tokens (colors, fonts)
+├── index.html                       # 🔒 LOCKED – HTML template
+├── package.json                     # 🔒 LOCKED – Dependencies and scripts
+└── vite.config.js                   # Build tool configuration (not locked but rarely changed)
+```
+
+---
+
+## 📁 Backend — File & Folder Structure with Purpose
+
+```
+backend/
+├── config/
+│   └── db.js                        # 🔒 LOCKED – MongoDB connection using Mongoose
+│
+├── models/                          # 🔒 LOCKED – Database schemas
+│   ├── User.js                      # User schema (student/admin, status, role)
+│   ├── Post.js                      # Post schema (lost/found items)
+│   └── Claim.js                     # Claim schema (ownership disputes)
+│
+├── routes/                          # 🔒 LOCKED – API route definitions
+│   ├── authRoutes.js                # /api/auth endpoints (register, login, me)
+│   ├── postRoutes.js                # /api/posts endpoints (CRUD, claim, search)
+│   ├── claimRoutes.js               # /api/claims endpoints (user claims)
+│   └── admin/                       # Admin specific routes
+│       └── adminRoutes.js           # /api/admin endpoints (verification, moderation)
+│
+├── controllers/                     # 🔓 OPEN – Business logic (team implements)
+│   ├── authController.js            # Register, login, getMe (Locked – done by lead)
+│   ├── postController.js            # Post CRUD, search/filter, claim submission (Open)
+│   ├── claimController.js           # Get user's claims (Open)
+│   └── admin/                       # Admin controllers
+│       └── adminController.js       # Verify users, manage posts/claims (Open)
+│
+├── middleware/                      # 🔒 LOCKED – Request processing middleware
+│   ├── authMiddleware.js            # Protect routes – JWT verification
+│   ├── adminMiddleware.js           # Check admin role
+│   ├── uploadMiddleware.js          # Multer config for image uploads
+│   └── errorMiddleware.js           # Not found & global error handler
+│
+├── utils/                           # 🔒 LOCKED – Helper functions
+│   └── generateToken.js             # Generate JWT token
+│
+├── uploads/                         # 📁 Stores user-uploaded images (local)
+│   └── .gitkeep                     # Keeps folder in git
+│
+├── app.js                           # 🔒 LOCKED – Express app configuration
+├── server.js                        # 🔒 LOCKED – Starts server, connects DB
+├── seedAdmin.js                     # 🔒 LOCKED – One-time admin user creation script
+├── .env                             # 🔒 LOCKED – Environment variables (never commit)
+├── .env.example                     # 🔒 LOCKED – Template for required env vars
+├── .gitignore                       # 🔒 LOCKED – Files ignored by git
+└── package.json                     # 🔒 LOCKED – Dependencies & scripts
+```
+
+---
