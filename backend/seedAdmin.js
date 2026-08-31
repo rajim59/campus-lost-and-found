@@ -17,17 +17,22 @@ const seedAdmin = async () => {
       process.exit(0);
     }
 
-    const hashedPassword = await bcrypt.hash(process.env.ADMIN_PASSWORD || 'admin123456', 10);
+    const hashedPassword = await bcrypt.hash(
+      process.env.ADMIN_PASSWORD || 'admin123456',
+      10
+    );
 
+    // User Schema অনুযায়ী ফিল্ডের নাম ও ভ্যালিডেশন ঠিক করা হয়েছে
     await User.create({
-      name: 'System Admin',
+      fullName: 'System Admin',
       email: adminEmail,
       password: hashedPassword,
       studentId: 'ADMIN-001',
-      department: 'Administration',
+      department: 'other', // enum: ['cse', 'eee', 'ece', 'bba', 'english', 'law', 'other']
+      batch: 'ADMIN',      // Schema-তে required field
       phone: '01700000000',
       role: 'admin',
-      isVerified: true,
+      status: 'approved',  // Schema-তে isVerified এর বদলে status enum রয়েছে
     });
 
     console.log('✅ Admin user created successfully!');
