@@ -1,120 +1,166 @@
+import { useState, useEffect } from 'react';
+import SearchBar from '../components/shared/SearchBar';
+import FilterPills from '../components/shared/FilterPills';
+import PostCard from '../components/shared/PostCard';
+import SkeletonCard from '../components/ui/SkeletonCard';
+import EmptyState from '../components/ui/EmptyState';
+import Pagination from '../components/ui/Pagination';
+import { SearchX } from 'lucide-react';
 
-import { Search } from 'lucide-react';
-import Button from '../components/ui/Button';
-import Badge from '../components/ui/Badge';
-
+// Temporary dummy data (later replace with API call)
+const dummyPosts = [
+  {
+    _id: '1',
+    postType: 'lost',
+    itemName: 'Student ID Card',
+    location: 'library',
+    itemDate: new Date('2026-08-28'),
+    images: [],
+    status: 'open',
+    userId: { fullName: 'Sobuj Ahmed' },
+  },
+  {
+    _id: '2',
+    postType: 'found',
+    itemName: 'Wallet',
+    location: 'cafeteria',
+    itemDate: new Date('2026-08-29'),
+    images: [],
+    status: 'open',
+    userId: { fullName: 'Atikul Islam' },
+  },
+  {
+    _id: '3',
+    postType: 'lost',
+    itemName: 'Phone',
+    location: 'academic_building',
+    itemDate: new Date('2026-08-30'),
+    images: [],
+    status: 'resolved',
+    userId: { fullName: 'Al Fahim' },
+  },
+];
 
 const Home = () => {
+  const [searchTerm, setSearchTerm] = useState('');
+  const [activeFilter, setActiveFilter] = useState('all');
+  const [posts, setPosts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const postsPerPage = 6;
 
-  const dummyPosts = [
-    {
-      id: 1,
-      type: 'lost',
-      itemName: 'Student ID Card',
-      location: 'Library',
-      date: '2026-08-28',
-      author: 'John Doe',
-      image: null,
-      status: 'open',
-    },
-    {
-      id: 2,
-      type: 'found',
-      itemName: 'Wallet',
-      location: 'Cafeteria',
-      date: '2026-08-29',
-      author: 'Jane Smith',
-      image: null,
-      status: 'open',
-    },
-    {
-      id: 3,
-      type: 'lost',
-      itemName: 'Phone',
-      location: 'Academic Building',
-      date: '2026-08-30',
-      author: 'Robert Johnson',
-      image: null,
-      status: 'resolved',
-    },
+  // Simulate data fetch (will be replaced with API)
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setPosts(dummyPosts);
+      setLoading(false);
+    }, 800);
+    return () => clearTimeout(timer);
+  }, []);
+
+  // Filter logic
+  const filteredPosts = posts.filter((post) => {
+    const matchesFilter =
+      activeFilter === 'all' ||
+      post.postType === activeFilter ||
+      post.category === activeFilter;
+    const matchesSearch = post.itemName
+      .toLowerCase()
+      .includes(searchTerm.toLowerCase());
+    return matchesFilter && matchesSearch;
+  });
+
+  // Pagination logic
+  const indexOfLast = currentPage * postsPerPage;
+  const indexOfFirst = indexOfLast - postsPerPage;
+  const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
+  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+
+  const filterItems = [
+    { value: 'all', label: 'All' },
+    { value: 'lost', label: 'Lost' },
+    { value: 'found', label: 'Found' },
+    { value: 'id_card', label: 'ID Card' },
+    { value: 'wallet', label: 'Wallet' },
+    { value: 'phone', label: 'Phone' },
+    { value: 'book', label: 'Book' },
+    { value: 'key', label: 'Key' },
   ];
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8">
-      {/* Hero */}
-      <div className="text-center mb-8">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 fade-in">
+      {/* Hero Section */}
+      <div className="text-center mb-10">
         <h1 className="text-3xl md:text-4xl font-bold text-textPrimary">
           Lost something? <span className="text-primary">Find it here.</span>
         </h1>
-        <p className="mt-2 text-textSecondary">
+        <p className="mt-3 text-textSecondary max-w-2xl mx-auto">
           A trusted space for the university community to reunite lost items with their owners.
         </p>
-        <div className="mt-6 max-w-2xl mx-auto relative">
-          <input
-            type="text"
-            placeholder="Search for ID cards, wallets, phones..."
-            className="w-full pl-12 pr-4 py-3 rounded-full border border-border bg-surface shadow-card focus:outline-none focus:ring-2 focus:ring-primary"
-          />
-          <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-textSecondary" />
-        </div>
+        <SearchBar
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="mt-8"
+        />
       </div>
 
       {/* Trust indicators */}
-      <div className="flex justify-center space-x-6 text-sm text-textSecondary mb-8">
-        <span>✅ Verified students only</span>
-        <span>📦 120+ items recovered</span>
-        <span>📍 10 campus locations</span>
+      <div className="flex flex-wrap justify-center gap-6 text-sm text-textSecondary mb-10">
+        <span className="flex items-center">
+          <span className="mr-1 text-success">✓</span> Verified students only
+        </span>
+        <span className="flex items-center">
+          <span className="mr-1 text-success">✓</span> 120+ items recovered
+        </span>
+        <span className="flex items-center">
+          <span className="mr-1 text-success">✓</span> 10 campus locations
+        </span>
       </div>
 
-      {/* Filter pills */}
-      <div className="flex flex-wrap gap-2 mb-8">
-        {['All', 'Lost', 'Found', 'ID Card', 'Wallet', 'Phone', 'Book', 'Key'].map((cat) => (
-          <button
-            key={cat}
-            className="px-4 py-1.5 rounded-full border border-border bg-surface text-sm text-textPrimary hover:bg-background"
-          >
-            {cat}
-          </button>
-        ))}
+      {/* Filter Pills */}
+      <div className="mb-8">
+        <FilterPills
+          items={filterItems}
+          activeKey={activeFilter}
+          onChange={setActiveFilter}
+        />
       </div>
 
-      {/* Post grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {dummyPosts.map((post) => (
-          <div
-            key={post.id}
-            className="bg-surface border border-border rounded-card shadow-card hover:shadow-card-hover transition-all overflow-hidden"
-          >
-            {/* Image placeholder */}
-            <div className="aspect-video bg-gray-200 flex items-center justify-center">
-              <span className="text-textSecondary text-sm">No image</span>
-            </div>
-            <div className="p-4">
-              <div className="flex items-center justify-between mb-2">
-                <Badge variant={post.type === 'lost' ? 'lost' : 'found'}>
-                  {post.type === 'lost' ? 'Lost' : 'Found'}
-                </Badge>
-                {post.status === 'resolved' && (
-                  <Badge variant="resolved">Resolved</Badge>
-                )}
-              </div>
-              <h3 className="text-lg font-semibold text-textPrimary">{post.itemName}</h3>
-              <p className="text-sm text-textSecondary mt-1">
-                📍 {post.location} · 📅 {post.date}
-              </p>
-              <div className="flex items-center mt-3">
-                <div className="h-6 w-6 rounded-full bg-primary/20 flex items-center justify-center text-xs text-primary font-medium">
-                  {post.author.charAt(0)}
-                </div>
-                <span className="ml-2 text-sm text-textSecondary">{post.author}</span>
-              </div>
-              <Button variant="secondary" size="sm" fullWidth className="mt-3">
-                View Details
-              </Button>
-            </div>
+      {/* Content */}
+      {loading ? (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <SkeletonCard key={i} />
+          ))}
+        </div>
+      ) : error ? (
+        <div className="text-center py-12 text-danger">{error}</div>
+      ) : currentPosts.length === 0 ? (
+        <EmptyState
+          icon={SearchX}
+          title="No posts found"
+          description="Try adjusting your search or filters to find what you're looking for."
+        />
+      ) : (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {currentPosts.map((post) => (
+              <PostCard key={post._id} post={post} />
+            ))}
           </div>
-        ))}
-      </div>
+
+          {totalPages > 1 && (
+            <div className="mt-10">
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={setCurrentPage}
+              />
+            </div>
+          )}
+        </>
+      )}
     </div>
   );
 };
