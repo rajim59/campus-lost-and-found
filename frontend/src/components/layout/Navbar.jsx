@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, NavLink } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { Search, Menu, X, Plus } from 'lucide-react';
 import { useAuth } from '../../contexts/AuthContext';
 import Button from '../ui/Button';
@@ -7,11 +7,28 @@ import Avatar from '../ui/Avatar';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [searchOpen, setSearchOpen] = useState(false);
+  const navigate = useNavigate();
+  const [profileOpen, setProfileOpen] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  const handleCreatePostClick = () => {
+    if (user) {
+      navigate('/create-post');
+    } else {
+      navigate('/login');
+    }
+  };
+
+  const scrollToSearch = () => {
+    const searchInput = document.querySelector('input[placeholder*="Search for ID cards"]');
+    if (searchInput) {
+      searchInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      searchInput.focus();
+    }
+  };
 
   return (
-    <nav className="sticky top-0 z-40 bg-surface border-b border-border">
+    <nav className="sticky top-0 z-40 bg-surface border-b border-border shadow-sm">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Left: Logo */}
@@ -25,12 +42,12 @@ const Navbar = () => {
           </Link>
 
           {/* Center: Nav links (desktop) */}
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center space-x-8">
             <NavLink
               to="/"
               className={({ isActive }) =>
-                `text-sm font-medium ${
-                  isActive ? 'text-primary' : 'text-textSecondary hover:text-textPrimary'
+                `text-sm font-medium transition-colors ${
+                  isActive ? 'text-primary font-semibold' : 'text-textSecondary hover:text-textPrimary'
                 }`
               }
             >
@@ -39,8 +56,8 @@ const Navbar = () => {
             <NavLink
               to="/about"
               className={({ isActive }) =>
-                `text-sm font-medium ${
-                  isActive ? 'text-primary' : 'text-textSecondary hover:text-textPrimary'
+                `text-sm font-medium transition-colors ${
+                  isActive ? 'text-primary font-semibold' : 'text-textSecondary hover:text-textPrimary'
                 }`
               }
             >
@@ -48,49 +65,53 @@ const Navbar = () => {
             </NavLink>
           </div>
 
-          {/* Right: Search, Create, Auth */}
-          <div className="flex items-center space-x-3">
-            {/* Search (desktop) */}
-            <div className="hidden lg:block relative">
-              <input
-                type="text"
-                placeholder="Search..."
-                className="w-48 pl-9 pr-3 py-1.5 text-sm rounded-full border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-              />
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-textSecondary" />
-            </div>
+          {/* Right: Search Icon, Create Post, Auth */}
+          <div className="flex items-center space-x-4">
+            {/* Search Icon Button */}
+            <button
+              onClick={scrollToSearch}
+              className="p-2 text-textSecondary hover:text-textPrimary rounded-full hover:bg-background transition-colors"
+              title="Search"
+            >
+              <Search className="h-5 w-5" />
+            </button>
 
-            {/* Create Post button */}
-            {user && (
-              <Link to="/create-post">
-                <Button size="sm">
-                  <Plus className="h-4 w-4 mr-1" /> Create Post
-                </Button>
-              </Link>
-            )}
+            {/* Create Post Button */}
+            <Button size="sm" onClick={handleCreatePostClick} className="hidden sm:inline-flex items-center">
+              <Plus className="h-4 w-4 mr-1" /> Create Post
+            </Button>
 
             {/* Auth / Profile */}
             {user ? (
               <div className="relative">
-                <button onClick={() => setMobileOpen(!mobileOpen)} className="flex items-center">
+                <button
+                  onClick={() => setProfileOpen(!profileOpen)}
+                  className="flex items-center focus:outline-none"
+                >
                   <Avatar name={user.fullName} size="sm" />
                 </button>
-                {mobileOpen && (
-                  <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-card shadow-card py-1">
+
+                {profileOpen && (
+                  <div className="absolute right-0 mt-2 w-48 bg-surface border border-border rounded-card shadow-card py-1 z-50">
                     <Link
                       to="/profile"
+                      onClick={() => setProfileOpen(false)}
                       className="block px-4 py-2 text-sm text-textPrimary hover:bg-background"
                     >
                       Profile
                     </Link>
                     <Link
                       to="/my-posts"
+                      onClick={() => setProfileOpen(false)}
                       className="block px-4 py-2 text-sm text-textPrimary hover:bg-background"
                     >
                       My Posts
                     </Link>
                     <button
-                      onClick={logout}
+                      onClick={() => {
+                        setProfileOpen(false);
+                        logout();
+                      }}
                       className="block w-full text-left px-4 py-2 text-sm text-danger hover:bg-background"
                     >
                       Logout
@@ -108,22 +129,36 @@ const Navbar = () => {
 
             {/* Mobile menu button */}
             <button
-              className="md:hidden p-1 rounded hover:bg-background"
-              onClick={() => setSearchOpen(!searchOpen)}
+              className="md:hidden p-1.5 rounded hover:bg-background text-textSecondary"
+              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             >
-              {searchOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
+              {mobileMenuOpen ? <X className="h-5 w-5" /> : <Menu className="h-5 w-5" />}
             </button>
           </div>
         </div>
 
-        {/* Mobile search */}
-        {searchOpen && (
-          <div className="pb-3 md:hidden">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full pl-9 pr-3 py-2 text-sm rounded-full border border-border bg-background focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+        {/* Mobile Dropdown Menu */}
+        {mobileMenuOpen && (
+          <div className="md:hidden py-3 border-t border-border space-y-2">
+            <Link
+              to="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 text-sm font-medium text-textPrimary hover:bg-background rounded"
+            >
+              Home
+            </Link>
+            <Link
+              to="/about"
+              onClick={() => setMobileMenuOpen(false)}
+              className="block px-3 py-2 text-sm font-medium text-textPrimary hover:bg-background rounded"
+            >
+              About
+            </Link>
+            <div className="pt-2">
+              <Button size="sm" onClick={() => { setMobileMenuOpen(false); handleCreatePostClick(); }} className="w-full">
+                <Plus className="h-4 w-4 mr-1" /> Create Post
+              </Button>
+            </div>
           </div>
         )}
       </div>
