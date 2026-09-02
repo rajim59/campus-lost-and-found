@@ -1,5 +1,5 @@
-// API
-export const API_BASE_URL = 'http://localhost:5000/api';
+export const API_BASE_URL = 'http://localhost:3000/api';
+export const SERVER_URL = 'http://localhost:3000';
 
 // Categories
 export const CATEGORIES = [

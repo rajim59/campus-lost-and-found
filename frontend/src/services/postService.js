@@ -10,6 +10,11 @@ export const getPostById = async (id) => {
   return response.data;
 };
 
+export const getMyPosts = async () => {
+  const response = await api.get('/posts/my-posts');
+  return response.data;
+};
+
 export const createPost = async (formData) => {
   const response = await api.post('/posts', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },

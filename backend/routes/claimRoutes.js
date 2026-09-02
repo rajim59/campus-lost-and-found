@@ -1,6 +1,10 @@
 import express from 'express';
+import { getUserClaims } from '../controllers/claimController.js';
+import { protect } from '../middleware/authMiddleware.js';
+
 const router = express.Router();
 
-router.get('/', (req, res) => res.json({ message: 'claimRoutes.js working' }));
+// GET /api/claims/my
+router.get('/my', protect, getUserClaims);
 
 export default router;
