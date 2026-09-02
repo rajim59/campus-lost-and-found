@@ -1,4 +1,3 @@
-// Placeholder for postController.js
 import Post from '../models/Post.js';
 import Claim from '../models/Claim.js';
 import fs from 'fs';
@@ -12,16 +11,69 @@ import path from 'path';
 // @route   GET /api/posts
 // @access  Public
 export const getAllPosts = async (req, res) => {
-  // TODO: implement by Atikul (Package for Atikul)
-  return res.status(501).json({ message: 'Not implemented yet' });
+  try {
+    const { search, postType, category, location, status, page = 1, limit = 10 } = req.query;
+
+    const query = {};
+
+    // Filters
+    if (postType) query.postType = postType;
+    if (category) query.category = category;
+    if (location) query.location = location;
+    if (status) query.status = status;
+
+    // Search
+    if (search) {
+      query.$or = [
+        { itemName: { $regex: search, $options: 'i' } },
+        { description: { $regex: search, $options: 'i' } },
+      ];
+    }
+
+    // Pagination
+    const pageNum = parseInt(page) || 1;
+    const limitNum = parseInt(limit) || 10;
+    const skip = (pageNum - 1) * limitNum;
+
+    // Count and fetch
+    const total = await Post.countDocuments(query);
+    const posts = await Post.find(query)
+      .populate('userId', 'fullName studentId department batch')
+      .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limitNum);
+
+    return res.status(200).json({
+      total,
+      page: pageNum,
+      limit: limitNum,
+      totalPages: Math.ceil(total / limitNum),
+      posts,
+    });
+
+  } catch (error) {
+    console.error('GetAllPosts Error:', error.message);
+    return res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
 };
 
 // @desc    Get single post by id
 // @route   GET /api/posts/:id
 // @access  Public
 export const getPostById = async (req, res) => {
-  // TODO: implement by Atikul
-  return res.status(501).json({ message: 'Not implemented yet' });
+  try {
+    const post = await Post.findById(req.params.id)
+      .populate('userId', 'fullName studentId email department batch profileImage');
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    return res.status(200).json({ post });
+  } catch (error) {
+    console.error('GetPostById Error:', error.message);
+    return res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
 };
 
 // @desc    Create new post

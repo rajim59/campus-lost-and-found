@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import SearchBar from '../components/shared/SearchBar';
 import FilterPills from '../components/shared/FilterPills';
 import PostCard from '../components/shared/PostCard';
@@ -6,76 +7,75 @@ import SkeletonCard from '../components/ui/SkeletonCard';
 import EmptyState from '../components/ui/EmptyState';
 import Pagination from '../components/ui/Pagination';
 import { SearchX } from 'lucide-react';
-
-// Temporary dummy data (later replace with API call)
-const dummyPosts = [
-  {
-    _id: '1',
-    postType: 'lost',
-    itemName: 'Student ID Card',
-    location: 'library',
-    itemDate: new Date('2026-08-28'),
-    images: [],
-    status: 'open',
-    userId: { fullName: 'Sobuj Ahmed' },
-  },
-  {
-    _id: '2',
-    postType: 'found',
-    itemName: 'Wallet',
-    location: 'cafeteria',
-    itemDate: new Date('2026-08-29'),
-    images: [],
-    status: 'open',
-    userId: { fullName: 'Atikul Islam' },
-  },
-  {
-    _id: '3',
-    postType: 'lost',
-    itemName: 'Phone',
-    location: 'academic_building',
-    itemDate: new Date('2026-08-30'),
-    images: [],
-    status: 'resolved',
-    userId: { fullName: 'Al Fahim' },
-  },
-];
+import { getAllPosts } from '../services/postService';
 
 const Home = () => {
-  const [searchTerm, setSearchTerm] = useState('');
-  const [activeFilter, setActiveFilter] = useState('all');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const initialSearch = searchParams.get('search') || '';
+  const initialFilter = searchParams.get('filter') || 'all';
+  const initialPage = parseInt(searchParams.get('page')) || 1;
+
+  const [searchTerm, setSearchTerm] = useState(initialSearch);
+  const [activeFilter, setActiveFilter] = useState(initialFilter);
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error] = useState('');
-  const [currentPage, setCurrentPage] = useState(1);
+  const [error, setError] = useState('');
+  const [currentPage, setCurrentPage] = useState(initialPage);
+  const [totalPages, setTotalPages] = useState(1);
   const postsPerPage = 6;
 
-  // Simulate data fetch (will be replaced with API)
+  // Update URL when filter/search/page changes
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setPosts(dummyPosts);
-      setLoading(false);
-    }, 800);
-    return () => clearTimeout(timer);
-  }, []);
+    const params = {};
+    if (searchTerm) params.search = searchTerm;
+    if (activeFilter !== 'all') params.filter = activeFilter;
+    if (currentPage > 1) params.page = currentPage;
+    setSearchParams(params);
+  }, [searchTerm, activeFilter, currentPage]);
 
-  // Filter logic
-  const filteredPosts = posts.filter((post) => {
-    const matchesFilter =
-      activeFilter === 'all' ||
-      post.postType === activeFilter ||
-      post.category === activeFilter;
-    const matchesSearch = post.itemName
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    return matchesFilter && matchesSearch;
-  });
+  // Fetch posts from API
+  useEffect(() => {
+    const fetchPosts = async () => {
+      try {
+        setLoading(true);
+        setError('');
 
-  // Pagination logic
-  const indexOfLast = currentPage * postsPerPage;
-  const indexOfFirst = indexOfLast - postsPerPage;
-  const currentPosts = filteredPosts.slice(indexOfFirst, indexOfLast);
-  const totalPages = Math.ceil(filteredPosts.length / postsPerPage);
+        const query = {
+          page: currentPage,
+          limit: postsPerPage,
+        };
+        if (searchTerm) query.search = searchTerm;
+        if (activeFilter !== 'all') {
+          // Determine if filter is type or category
+          if (['lost', 'found'].includes(activeFilter)) {
+            query.postType = activeFilter;
+          } else {
+            query.category = activeFilter;
+          }
+        }
+
+        const data = await getAllPosts(query);
+        setPosts(data.posts);
+        setTotalPages(data.totalPages || 1);
+      } catch (err) {
+        setError(err.response?.data?.message || 'Failed to load posts. Please try again.');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchPosts();
+  }, [searchTerm, activeFilter, currentPage]);
+
+  const handleSearchChange = (e) => {
+    setSearchTerm(e.target.value);
+    setCurrentPage(1); // reset to first page on new search
+  };
+
+  const handleFilterChange = (value) => {
+    setActiveFilter(value);
+    setCurrentPage(1);
+  };
 
   const filterItems = [
     { value: 'all', label: 'All' },
@@ -100,7 +100,7 @@ const Home = () => {
         </p>
         <SearchBar
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={handleSearchChange}
           className="mt-8"
         />
       </div>
@@ -123,20 +123,20 @@ const Home = () => {
         <FilterPills
           items={filterItems}
           activeKey={activeFilter}
-          onChange={setActiveFilter}
+          onChange={handleFilterChange}
         />
       </div>
 
       {/* Content */}
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[...Array(6)].map((_, i) => (
+          {[...Array(postsPerPage)].map((_, i) => (
             <SkeletonCard key={i} />
           ))}
         </div>
       ) : error ? (
         <div className="text-center py-12 text-danger">{error}</div>
-      ) : currentPosts.length === 0 ? (
+      ) : posts.length === 0 ? (
         <EmptyState
           icon={SearchX}
           title="No posts found"
@@ -145,7 +145,7 @@ const Home = () => {
       ) : (
         <>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {currentPosts.map((post) => (
+            {posts.map((post) => (
               <PostCard key={post._id} post={post} />
             ))}
           </div>

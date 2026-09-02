@@ -1,11 +1,15 @@
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import { Eye, EyeOff, UserPlus } from 'lucide-react';
 import Button from '../components/ui/Button';
 import Input from '../components/ui/Input';
 import Select from '../components/ui/Select';
 import { DEPARTMENTS } from '../utils/constants';
+import { register } from '../services/authService';
 
 const Register = () => {
+  const navigate = useNavigate();
+
   const [formData, setFormData] = useState({
     fullName: '',
     studentId: '',
@@ -17,91 +21,165 @@ const Register = () => {
     confirmPassword: '',
   });
 
-  const handleSubmit = (e) => {
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [error, setError] = useState('');
+  const [loading, setLoading] = useState(false);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert('Registration form submitted (demo)');
+    setError('');
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      await register({
+        fullName: formData.fullName,
+        studentId: formData.studentId,
+        email: formData.email,
+        phone: formData.phone,
+        department: formData.department,
+        batch: formData.batch,
+        password: formData.password,
+      });
+      navigate('/login');
+    } catch (err) {
+      setError(err.response?.data?.message || 'Registration failed. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-background px-4 py-8">
-      <div className="max-w-md w-full bg-surface border border-border rounded-container shadow-card p-8">
-        <h1 className="text-2xl font-bold text-textPrimary text-center">Create your account</h1>
-        <p className="text-sm text-textSecondary text-center mt-1">
-          Register with your university details
-        </p>
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 py-8">
+      <div className="w-full max-w-2xl bg-surface border border-border rounded-container p-8 md:p-10 shadow-card">
+        <div className="text-center mb-8">
+          <div className="w-12 h-12 mx-auto rounded-card bg-primary text-white flex items-center justify-center mb-4">
+            <UserPlus size={22} />
+          </div>
+          <h1 className="text-3xl font-bold text-textPrimary">Create your account</h1>
+          <p className="text-textSecondary mt-2">Register with your university details</p>
+        </div>
 
-        <form onSubmit={handleSubmit} className="mt-6 space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-5">
           <Input
             label="Full Name"
-            type="text"
-            placeholder="John Doe"
+            name="fullName"
             value={formData.fullName}
-            onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+            onChange={handleChange}
+            placeholder="Abdur Rahman"
             required
           />
-          <Input
-            label="Student ID"
-            type="text"
-            placeholder="CSE-2022-001"
-            value={formData.studentId}
-            onChange={(e) => setFormData({ ...formData, studentId: e.target.value })}
-            required
-          />
+
+          <div className="grid md:grid-cols-2 gap-4">
+            <Input
+              label="Student ID"
+              name="studentId"
+              value={formData.studentId}
+              onChange={handleChange}
+              placeholder="242034004"
+              required
+            />
+            <Input
+              label="Batch"
+              name="batch"
+              value={formData.batch}
+              onChange={handleChange}
+              placeholder="242"
+              required
+            />
+          </div>
+
           <Input
             label="Email"
             type="email"
-            placeholder="you@university.edu"
+            name="email"
             value={formData.email}
-            onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-            required
-          />
-          <Input
-            label="Phone"
-            type="tel"
-            placeholder="+8801XXXXXXXXX"
-            value={formData.phone}
-            onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-          />
-          <Select
-            label="Department"
-            options={DEPARTMENTS}
-            value={formData.department}
-            onChange={(e) => setFormData({ ...formData, department: e.target.value })}
-            required
-          />
-          <Input
-            label="Batch"
-            type="text"
-            placeholder="2022"
-            value={formData.batch}
-            onChange={(e) => setFormData({ ...formData, batch: e.target.value })}
-            required
-          />
-          <Input
-            label="Password"
-            type="password"
-            placeholder="••••••••"
-            value={formData.password}
-            onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-            required
-          />
-          <Input
-            label="Confirm Password"
-            type="password"
-            placeholder="••••••••"
-            value={formData.confirmPassword}
-            onChange={(e) => setFormData({ ...formData, confirmPassword: e.target.value })}
+            onChange={handleChange}
+            placeholder="242034004@student.green.ac.bd"
             required
           />
 
-          <Button type="submit" fullWidth size="lg">
+          <Input
+            label="Phone"
+            type="tel"
+            name="phone"
+            value={formData.phone}
+            onChange={handleChange}
+            placeholder="+8801XXXXXXXXX"
+          />
+
+          <Select
+            label="Department"
+            name="department"
+            options={DEPARTMENTS}
+            value={formData.department}
+            onChange={handleChange}
+            required
+          />
+
+          <div className="relative">
+            <Input
+              label="Password"
+              name="password"
+              type={showPassword ? 'text' : 'password'}
+              value={formData.password}
+              onChange={handleChange}
+              placeholder="Enter your password"
+              required
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-9 text-textSecondary"
+            >
+              {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          <div className="relative">
+            <Input
+              label="Confirm Password"
+              name="confirmPassword"
+              type={showConfirmPassword ? 'text' : 'password'}
+              value={formData.confirmPassword}
+              onChange={handleChange}
+              placeholder="Confirm your password"
+              required
+              className="pr-10"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-9 text-textSecondary"
+            >
+              {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+            </button>
+          </div>
+
+          {error && (
+            <div className="bg-danger/5 border border-danger/20 text-danger rounded-card px-4 py-3 text-sm">
+              {error}
+            </div>
+          )}
+
+          <Button type="submit" fullWidth size="lg" loading={loading}>
             Register
           </Button>
         </form>
 
-        <p className="text-sm text-textSecondary text-center mt-4">
+        <p className="text-sm text-textSecondary text-center mt-6">
           Already have an account?{' '}
-          <Link to="/login" className="text-primary font-medium hover:underline">
+          <Link to="/login" className="text-primary font-semibold hover:underline">
             Log in
           </Link>
         </p>

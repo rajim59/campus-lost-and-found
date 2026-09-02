@@ -1,3 +1,5 @@
+import fs from 'fs';
+import path from 'path';
 import User from '../../models/User.js';
 import Post from '../../models/Post.js';
 import Claim from '../../models/Claim.js';
@@ -184,22 +186,70 @@ export const rejectClaim = async (req, res) => {
 // @route   GET /api/admin/posts
 // @access  Private (Admin only)
 export const getAllPosts = async (req, res) => {
-  // TODO: implement by Al Fahim
-  return res.status(501).json({ message: 'Not implemented yet' });
+  try {
+    const posts = await Post.find()
+      .populate('userId', 'fullName studentId email')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ posts });
+  } catch (error) {
+    console.error('AdminGetAllPosts Error:', error.message);
+    return res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
 };
 
 // @desc    Delete any post (admin)
 // @route   DELETE /api/admin/posts/:id
 // @access  Private (Admin only)
 export const deletePost = async (req, res) => {
-  // TODO: implement by Al Fahim
-  return res.status(501).json({ message: 'Not implemented yet' });
+  try {
+    const post = await Post.findById(req.params.id);
+
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Delete images from uploads
+    if (post.images && post.images.length > 0) {
+      post.images.forEach((image) => {
+        const imagePath = path.join(process.cwd(), 'uploads', image);
+        if (fs.existsSync(imagePath)) {
+          try {
+            fs.unlinkSync(imagePath);
+            console.log('Image deleted:', image);
+          } catch (err) {
+            console.error('Image delete error:', err.message);
+          }
+        }
+      });
+    }
+
+    // Delete associated claims
+    await Claim.deleteMany({ postId: post._id });
+
+    // Delete post
+    await Post.findByIdAndDelete(post._id);
+
+    return res.status(200).json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    console.error('AdminDeletePost Error:', error.message);
+    return res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
 };
 
 // @desc    Get all claims (admin)
 // @route   GET /api/admin/claims
 // @access  Private (Admin only)
 export const getAllClaims = async (req, res) => {
-  // TODO: implement by Al Fahim
-  return res.status(501).json({ message: 'Not implemented yet' });
+  try {
+    const claims = await Claim.find()
+      .populate('postId', 'itemName postType status')
+      .populate('claimantUserId', 'fullName studentId email')
+      .sort({ createdAt: -1 });
+
+    return res.status(200).json({ claims });
+  } catch (error) {
+    console.error('AdminGetAllClaims Error:', error.message);
+    return res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
 };

@@ -1,4 +1,3 @@
-// Placeholder for authController.js
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 
@@ -54,7 +53,6 @@ export const register = async (req, res) => {
     });
 
     if (existingUser) {
-      // Check which field caused duplicate
       let field = 'User';
       if (existingUser.email === trimmedEmail) field = 'Email';
       else if (existingUser.studentId === trimmedStudentId) field = 'Student ID';
@@ -96,27 +94,22 @@ export const register = async (req, res) => {
   }
 };
 
-// @desc    Login user
+// @desc    Login user (using studentId only)
 // @route   POST /api/auth/login
 // @access  Public
 export const login = async (req, res) => {
   try {
-    const { emailOrStudentId, password } = req.body;
+    const { studentId, password } = req.body;
 
     // ✅ Required fields validation
-    if (!emailOrStudentId || !password) {
-      return res.status(400).json({ message: 'Please provide email/student ID and password' });
+    if (!studentId || !password) {
+      return res.status(400).json({ message: 'Please provide student ID and password' });
     }
 
-    const trimmedCredential = emailOrStudentId.trim().toLowerCase();
+    const trimmedCredential = studentId.trim();
 
-    // ✅ Find user by email OR studentId
-    const user = await User.findOne({
-      $or: [
-        { email: trimmedCredential },
-        { studentId: trimmedCredential },
-      ],
-    });
+    // ✅ Find user by studentId only
+    const user = await User.findOne({ studentId: trimmedCredential });
 
     // ✅ User existence check
     if (!user) {
@@ -171,7 +164,6 @@ export const login = async (req, res) => {
 // @access  Private (requires JWT token)
 export const getMe = async (req, res) => {
   try {
-    // req.user is set by protect middleware
     const user = await User.findById(req.user._id).select('-password');
 
     if (!user) {
