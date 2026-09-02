@@ -29,7 +29,21 @@ const userSchema = new mongoose.Schema(
     department: {
       type: String,
       required: true,
-      enum: ['cse', 'eee', 'ece', 'bba', 'english', 'law', 'other'],
+      enum: [
+        'cse',
+        'swe',
+        'eee',
+        'ece',
+        'bba',
+        'english',
+        'law',
+        'pharmacy',
+        'architecture',
+        'mathematics',
+        'physics',
+        'other',
+      ],
+      lowercase: true,
     },
     batch: {
       type: String,

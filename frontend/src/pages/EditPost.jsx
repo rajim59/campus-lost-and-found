@@ -24,6 +24,9 @@ const EditPost = () => {
     contactPhone: '',
     isContactPublic: true,
   });
+
+  const [customCategory, setCustomCategory] = useState('');
+  const [customLocation, setCustomLocation] = useState('');
   const [postType, setPostType] = useState('lost');
   const [existingImages, setExistingImages] = useState([]);
   const [newImages, setNewImages] = useState([]);
@@ -35,21 +38,37 @@ const EditPost = () => {
   useEffect(() => {
     const fetchPost = async () => {
       try {
-        // Simulated fetch — later replace with getPostById(id)
-        // For now we keep dummy or call API if available
-        const data = await getPostById(id); // if API available
+        const data = await getPostById(id);
+        const post = data.post;
+
+        // চেক করা ক্যাটাগরি ও লোকেশন প্রি-সেট তালিকায় আছে কি না
+        const categoryIsPreset = CATEGORIES.some((c) => c.value === post.category);
+        const locationIsPreset = LOCATIONS.some((l) => l.value === post.location);
+
+        // ডেট ফরম্যাট 'YYYY-MM-DDThh:mm' অনুযায়ী রূপান্তর
+        let formattedDate = '';
+        if (post.itemDate) {
+          const dateObj = new Date(post.itemDate);
+          formattedDate = dateObj.toISOString().slice(0, 16);
+        }
+
         setFormData({
-          itemName: data.post.itemName,
-          category: data.post.category,
-          location: data.post.location,
-          itemDate: data.post.itemDate,
-          description: data.post.description || '',
-          contactEmail: data.post.contactEmail || '',
-          contactPhone: data.post.contactPhone || '',
-          isContactPublic: data.post.isContactPublic,
+          itemName: post.itemName || '',
+          category: categoryIsPreset ? post.category : 'other',
+          location: locationIsPreset ? post.location : 'other',
+          itemDate: formattedDate,
+          description: post.description || '',
+          contactEmail: post.contactEmail || '',
+          contactPhone: post.contactPhone || '',
+          isContactPublic: post.isContactPublic ?? true,
         });
-        setPostType(data.post.postType);
-        setExistingImages(data.post.images || []);
+
+        // প্রি-সেট তালিকায় না থাকলে কাস্টম স্টেটে পুরনো মান সংরক্ষণ করা
+        if (!categoryIsPreset) setCustomCategory(post.category || '');
+        if (!locationIsPreset) setCustomLocation(post.location || '');
+
+        setPostType(post.postType);
+        setExistingImages(post.images || []);
         setLoading(false);
       } catch (err) {
         setError(err.response?.data?.message || 'Failed to load post');
@@ -96,18 +115,30 @@ const EditPost = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
+
+    // 'other' নির্বাচিত থাকলে কাস্টম ইনপুট, অন্যথায় ড্রপডাউনের মান ব্যবহার হবে
+    const finalCategory =
+      formData.category === 'other' ? customCategory.trim() : formData.category;
+    const finalLocation =
+      formData.location === 'other' ? customLocation.trim() : formData.location;
+
+    if (!formData.itemName.trim() || !finalCategory || !finalLocation || !formData.itemDate) {
+      setError('Please fill all required fields');
+      return;
+    }
+
     setSubmitting(true);
     try {
       const fd = new FormData();
-      fd.append('itemName', formData.itemName);
-      fd.append('category', formData.category);
-      fd.append('location', formData.location);
+      fd.append('itemName', formData.itemName.trim());
+      fd.append('category', finalCategory);
+      fd.append('location', finalLocation);
       fd.append('itemDate', formData.itemDate);
-      fd.append('description', formData.description);
-      fd.append('contactEmail', formData.contactEmail);
-      fd.append('contactPhone', formData.contactPhone);
+      fd.append('description', formData.description.trim());
+      fd.append('contactEmail', formData.contactEmail.trim());
+      fd.append('contactPhone', formData.contactPhone.trim());
       fd.append('isContactPublic', String(formData.isContactPublic));
-      // append existing images that remain (if backend supports keeping existing)
+
       existingImages.forEach((img) => fd.append('existingImages', img));
       newImages.forEach((img) => fd.append('images', img));
 
@@ -136,7 +167,7 @@ const EditPost = () => {
       </div>
 
       <form onSubmit={handleSubmit} className="bg-surface border border-border rounded-container p-6 md:p-8">
-        {/* Post Type (disabled) */}
+        {/* Post Type (Fixed) */}
         <div className="mb-6">
           <label className="block text-sm font-medium text-textPrimary mb-2">Post Type (fixed)</label>
           <Badge variant={postType === 'lost' ? 'lost' : 'found'}>
@@ -154,22 +185,57 @@ const EditPost = () => {
               required
             />
           </div>
-          <Select
-            label="Category *"
-            name="category"
-            options={CATEGORIES}
-            value={formData.category}
-            onChange={handleChange}
-            required
-          />
-          <Select
-            label="Location *"
-            name="location"
-            options={LOCATIONS}
-            value={formData.location}
-            onChange={handleChange}
-            required
-          />
+
+          {/* Category Dropdown */}
+          <div className={formData.category === 'other' ? 'md:col-span-1' : 'md:col-span-1'}>
+            <Select
+              label="Category *"
+              name="category"
+              options={CATEGORIES}
+              value={formData.category}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          {/* Custom Category Input */}
+          {formData.category === 'other' ? (
+            <div className="md:col-span-1">
+              <Input
+                label="Specify Category *"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder="e.g. Power Bank, Water Bottle, etc."
+                required
+              />
+            </div>
+          ) : null}
+
+          {/* Location Dropdown */}
+          <div className={formData.location === 'other' ? 'md:col-span-1' : 'md:col-span-1'}>
+            <Select
+              label="Location *"
+              name="location"
+              options={LOCATIONS}
+              value={formData.location}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          {/* Custom Location Input */}
+          {formData.location === 'other' ? (
+            <div className="md:col-span-1">
+              <Input
+                label="Specify Location *"
+                value={customLocation}
+                onChange={(e) => setCustomLocation(e.target.value)}
+                placeholder="e.g. Lab 3rd Floor, Gymnasium, etc."
+                required
+              />
+            </div>
+          ) : null}
+
           <div className="md:col-span-2">
             <Input
               label="Date & Time *"
@@ -180,6 +246,7 @@ const EditPost = () => {
               required
             />
           </div>
+
           <div className="md:col-span-2">
             <TextArea
               label="Description"

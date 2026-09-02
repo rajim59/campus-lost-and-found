@@ -5,8 +5,15 @@ export const register = async (data) => {
   return response.data;
 };
 
-export const login = async (emailOrStudentId, password) => {
-  const response = await api.post('/auth/login', { emailOrStudentId, password });
+// Student login — sends studentId to backend
+export const login = async (studentId, password) => {
+  const response = await api.post('/auth/login', { studentId, password });
+  return response.data;
+};
+
+// Admin login — sends email and password to dedicated endpoint
+export const adminLogin = async (email, password) => {
+  const response = await api.post('/auth/admin-login', { email, password });
   return response.data;
 };
 

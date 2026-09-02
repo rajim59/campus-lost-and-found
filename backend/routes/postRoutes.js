@@ -13,12 +13,15 @@ import {
 
 const router = express.Router();
 
+// Public routes
 router.get('/', getAllPosts);
 router.get('/:id', getPostById);
+router.get('/:id/claims', getClaimsByPost); // ✅ protect বাদ দিয়ে পাবলিক করা হয়েছে
+
+// Protected routes
 router.post('/', protect, upload.array('images', 3), createPost);
 router.put('/:id', protect, upload.array('images', 3), updatePost);
 router.delete('/:id', protect, deletePost);
 router.post('/:id/claim', protect, submitClaim);
-router.get('/:id/claims', protect, getClaimsByPost);
 
 export default router;

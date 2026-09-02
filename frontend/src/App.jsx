@@ -13,7 +13,9 @@ import AdminRoute from './components/routing/AdminRoute';
 import Home from './pages/Home';
 import PostDetail from './pages/PostDetail';
 import Login from './pages/Login';
+import AdminLogin from './pages/admin/AdminLogin';
 import Register from './pages/Register';
+import RegistrationSuccess from './pages/RegistrationSuccess';
 import About from './pages/About';
 import NotFound from './pages/NotFound';
 import CreatePost from './pages/CreatePost';
@@ -39,7 +41,9 @@ function App() {
 
         {/* Auth routes */}
         <Route path="/login" element={<Login />} />
+        <Route path="/admin/login" element={<AdminLogin />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/registration-success" element={<RegistrationSuccess />} />
 
         {/* Student protected routes */}
         <Route element={<ProtectedRoute />}>

@@ -23,12 +23,17 @@ export const LOCATIONS = [
 
 // Departments
 export const DEPARTMENTS = [
-  { value: 'cse', label: 'CSE' },
-  { value: 'eee', label: 'EEE' },
-  { value: 'ece', label: 'ECE' },
-  { value: 'bba', label: 'BBA' },
+  { value: 'cse', label: 'Computer Science & Engineering (CSE)' },
+  { value: 'swe', label: 'Software Engineering (SWE)' },
+  { value: 'eee', label: 'Electrical & Electronic Engineering (EEE)' },
+  { value: 'ece', label: 'Electronics & Communication Engineering (ECE)' },
+  { value: 'bba', label: 'Business Administration (BBA)' },
   { value: 'english', label: 'English' },
   { value: 'law', label: 'Law' },
+  { value: 'pharmacy', label: 'Pharmacy' },
+  { value: 'architecture', label: 'Architecture' },
+  { value: 'mathematics', label: 'Mathematics' },
+  { value: 'physics', label: 'Physics' },
   { value: 'other', label: 'Other' },
 ];
 

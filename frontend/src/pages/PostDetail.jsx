@@ -1,18 +1,22 @@
 import { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { MapPin, Calendar, User, Mail, Phone, CheckCircle2 } from 'lucide-react';
+import { MapPin, Calendar, User, Mail, Phone, CheckCircle2, MessageSquare } from 'lucide-react';
 import Badge from '../components/ui/Badge';
 import Button from '../components/ui/Button';
 import Spinner from '../components/ui/Spinner';
+import Avatar from '../components/ui/Avatar';
 import ClaimModal from '../components/shared/ClaimModal';
 import { SERVER_URL } from '../utils/constants';
-import { formatDate } from '../utils/helpers';
+import { formatDate, timeAgo } from '../utils/helpers';
 import { getPostById } from '../services/postService';
+import { getClaimsByPost } from '../services/claimService';
 
 const PostDetail = () => {
   const { id } = useParams();
   const [post, setPost] = useState(null);
+  const [claims, setClaims] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [claimsLoading, setClaimsLoading] = useState(false);
   const [error, setError] = useState('');
   const [isClaimModalOpen, setIsClaimModalOpen] = useState(false);
 
@@ -31,6 +35,23 @@ const PostDetail = () => {
     };
     fetchPost();
   }, [id]);
+
+  useEffect(() => {
+    const fetchClaims = async () => {
+      try {
+        setClaimsLoading(true);
+        const data = await getClaimsByPost(id);
+        setClaims(data.claims || []);
+      } catch (err) {
+        console.error('Error fetching claims:', err);
+      } finally {
+        setClaimsLoading(false);
+      }
+    };
+    if (id) {
+      fetchClaims();
+    }
+  }, [id, isClaimModalOpen]);
 
   if (loading) {
     return (
@@ -163,14 +184,66 @@ const PostDetail = () => {
               </Button>
             )}
             {post.postType === 'lost' && post.status === 'open' && (
-              <Link to="/create-post?type=found">
-                <Button variant="secondary" fullWidth size="lg">
-                  I found this item
-                </Button>
-              </Link>
+              <Button fullWidth size="lg" onClick={() => setIsClaimModalOpen(true)}>
+                I found this item
+              </Button>
             )}
           </div>
         </div>
+      </div>
+
+      {/* Recent Claims Section */}
+      <div className="mt-12">
+        <h2 className="text-xl font-bold text-textPrimary mb-4 flex items-center gap-2">
+          <MessageSquare className="h-5 w-5 text-primary" />
+          Recent Claims & Activity ({claims.length})
+        </h2>
+
+        {claimsLoading ? (
+          <div className="text-center py-8">
+            <Spinner size="md" />
+          </div>
+        ) : claims.length === 0 ? (
+          <div className="bg-surface border border-border rounded-card p-6 text-center text-textSecondary">
+            No claims or reports submitted yet.
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {claims.map((claim) => (
+              <div key={claim._id} className="bg-surface border border-border rounded-card p-4 shadow-card">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar
+                      name={claim.claimantUserId?.fullName}
+                      src={claim.claimantUserId?.profileImage}
+                      size="sm"
+                    />
+                    <div>
+                      <p className="font-semibold text-textPrimary">
+                        {claim.claimantUserId?.fullName || 'Anonymous'}
+                      </p>
+                      <p className="text-xs text-textSecondary">
+                        ID: {claim.claimantUserId?.studentId} · {claim.claimantUserId?.department?.toUpperCase()} · {timeAgo(claim.createdAt)}
+                      </p>
+                    </div>
+                  </div>
+                  <Badge
+                    variant={
+                      claim.status === 'accepted' ? 'resolved' :
+                      claim.status === 'rejected' ? 'rejected' :
+                      'pending'
+                    }
+                  >
+                    {claim.status}
+                  </Badge>
+                </div>
+                <p className="mt-3 text-sm text-textPrimary bg-background/50 p-3 rounded-card border border-border/50">
+                  {claim.message}
+                </p>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Claim Modal */}
@@ -179,6 +252,7 @@ const PostDetail = () => {
         onClose={() => setIsClaimModalOpen(false)}
         postId={post._id}
         postTitle={post.itemName}
+        postType={post.postType}
       />
     </div>
   );

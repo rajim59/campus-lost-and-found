@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import { createContext, useContext, useState, useEffect } from 'react';
 import * as authService from '../services/authService';
 
 const AuthContext = createContext(null);
@@ -22,13 +22,23 @@ export const AuthProvider = ({ children }) => {
       setUser(data.user);
     } catch (error) {
       localStorage.removeItem('token');
+      setUser(null);
     } finally {
       setLoading(false);
     }
   };
 
-  const login = async (emailOrStudentId, password) => {
-    const data = await authService.login(emailOrStudentId, password);
+  // Student login handler
+  const login = async (studentId, password) => {
+    const data = await authService.login(studentId, password);
+    localStorage.setItem('token', data.token);
+    setUser(data.user);
+    return data;
+  };
+
+  // Admin login handler
+  const adminLogin = async (email, password) => {
+    const data = await authService.adminLogin(email, password);
     localStorage.setItem('token', data.token);
     setUser(data.user);
     return data;
@@ -41,7 +51,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
+    <AuthContext.Provider value={{ user, setUser, loading, login, adminLogin, logout }}>
       {children}
     </AuthContext.Provider>
   );
