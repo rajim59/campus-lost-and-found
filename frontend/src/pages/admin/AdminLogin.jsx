@@ -6,7 +6,7 @@ import Input from '../../components/ui/Input';
 import { useAuth } from '../../contexts/AuthContext';
 
 const AdminLogin = () => {
-  const { login } = useAuth();
+  const { adminLogin } = useAuth();
   const navigate = useNavigate();
 
   const [email, setEmail] = useState('');
@@ -26,7 +26,7 @@ const AdminLogin = () => {
 
     try {
       setLoading(true);
-      await login(email, password);
+      await adminLogin(email, password);
       navigate('/admin');
     } catch (err) {
       setError(err.response?.data?.message || 'Login failed. Please try again.');

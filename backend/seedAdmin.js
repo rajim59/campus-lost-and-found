@@ -7,35 +7,37 @@ dotenv.config();
 
 const seedAdmin = async () => {
   try {
-    await mongoose.connect(process.env.MONGO_URI);
+    const mongoUri = process.env.MONGO_URI || 'mongodb://localhost:27017/campus-lost-and-found';
+    await mongoose.connect(mongoUri);
 
     const adminEmail = process.env.ADMIN_EMAIL || 'admin@campus.edu';
-    const adminExists = await User.findOne({ email: adminEmail });
+    const adminPassword = process.env.ADMIN_PASSWORD || 'Campus@2026!';
 
-    if (adminExists) {
-      console.log('Admin user already exists!');
-      process.exit(0);
-    }
+    const salt = await bcrypt.genSalt(10);
+    const hashedPassword = await bcrypt.hash(adminPassword, salt);
 
-    const hashedPassword = await bcrypt.hash(
-      process.env.ADMIN_PASSWORD || 'admin123456',
-      10
+    // Schema validation অনুযায়ী আপডেট বা তৈরি করা হচ্ছে
+    await User.updateOne(
+      { email: adminEmail },
+      {
+        $set: {
+          fullName: 'System Admin',
+          studentId: 'ADMIN-001',
+          email: adminEmail,
+          password: hashedPassword,
+          department: 'other',
+          batch: 'ADMIN',
+          phone: '01700000000',
+          role: 'admin',
+          status: 'approved',
+        },
+      },
+      { upsert: true }
     );
 
-    // User Schema অনুযায়ী ফিল্ডের নাম ও ভ্যালিডেশন ঠিক করা হয়েছে
-    await User.create({
-      fullName: 'System Admin',
-      email: adminEmail,
-      password: hashedPassword,
-      studentId: 'ADMIN-001',
-      department: 'other', // enum: ['cse', 'eee', 'ece', 'bba', 'english', 'law', 'other']
-      batch: 'ADMIN',      // Schema-তে required field
-      phone: '01700000000',
-      role: 'admin',
-      status: 'approved',  // Schema-তে isVerified এর বদলে status enum রয়েছে
-    });
-
-    console.log('✅ Admin user created successfully!');
+    console.log('✅ Admin user created/updated successfully!');
+    console.log(`Email: ${adminEmail}`);
+    console.log(`Password: ${adminPassword}`);
     process.exit(0);
   } catch (error) {
     console.error(`Error: ${error.message}`);

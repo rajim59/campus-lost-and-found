@@ -50,7 +50,7 @@ const Register = () => {
         batch: formData.batch,
         password: formData.password,
       });
-      navigate('/login');
+      navigate('/registration-success');
     } catch (err) {
       setError(err.response?.data?.message || 'Registration failed. Please try again.');
     } finally {
@@ -75,7 +75,7 @@ const Register = () => {
             name="fullName"
             value={formData.fullName}
             onChange={handleChange}
-            placeholder="Abdur Rahman"
+            placeholder="e.g., Alex Morgan"
             required
           />
 
@@ -85,7 +85,7 @@ const Register = () => {
               name="studentId"
               value={formData.studentId}
               onChange={handleChange}
-              placeholder="242034004"
+              placeholder="e.g., 2024-001"
               required
             />
             <Input
@@ -93,28 +93,28 @@ const Register = () => {
               name="batch"
               value={formData.batch}
               onChange={handleChange}
-              placeholder="242"
+              placeholder="e.g., 24th or 2024"
               required
             />
           </div>
 
           <Input
-            label="Email"
+            label="Email Address"
             type="email"
             name="email"
             value={formData.email}
             onChange={handleChange}
-            placeholder="242034004@student.green.ac.bd"
+            placeholder="student@university.edu"
             required
           />
 
           <Input
-            label="Phone"
+            label="Phone Number (Optional)"
             type="tel"
             name="phone"
             value={formData.phone}
             onChange={handleChange}
-            placeholder="+8801XXXXXXXXX"
+            placeholder="+880 1XXX-XXXXXX"
           />
 
           <Select
@@ -133,7 +133,7 @@ const Register = () => {
               type={showPassword ? 'text' : 'password'}
               value={formData.password}
               onChange={handleChange}
-              placeholder="Enter your password"
+              placeholder="Minimum 6 characters"
               required
               className="pr-10"
             />
@@ -153,7 +153,7 @@ const Register = () => {
               type={showConfirmPassword ? 'text' : 'password'}
               value={formData.confirmPassword}
               onChange={handleChange}
-              placeholder="Confirm your password"
+              placeholder="Re-enter your password"
               required
               className="pr-10"
             />
@@ -173,7 +173,7 @@ const Register = () => {
           )}
 
           <Button type="submit" fullWidth size="lg" loading={loading}>
-            Register
+            Create Account
           </Button>
         </form>
 

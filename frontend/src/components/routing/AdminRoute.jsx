@@ -13,9 +13,12 @@ const AdminRoute = () => {
     );
   }
 
-  if (!user) return <Navigate to="/login" replace />;
+  // Not logged in → redirect to dedicated admin login
+  if (!user) return <Navigate to="/admin/login" replace />;
+
+  // Logged in but not an admin → redirect to home
   if (user.role !== 'admin') return <Navigate to="/" replace />;
-  
+
   return <Outlet />;
 };
 

@@ -26,6 +26,8 @@ const CreatePost = () => {
     isContactPublic: true,
   });
 
+  const [customCategory, setCustomCategory] = useState('');
+  const [customLocation, setCustomLocation] = useState('');
   const [images, setImages] = useState([]);
   const [previews, setPreviews] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -66,8 +68,14 @@ const CreatePost = () => {
     e.preventDefault();
     setError('');
 
+    // ✅ "other" সিলেক্ট থাকলে কাস্টম ইনপুট, অন্যথায় সিলেক্টেড ভ্যালু
+    const finalCategory =
+      formData.category === 'other' ? customCategory.trim() : formData.category;
+    const finalLocation =
+      formData.location === 'other' ? customLocation.trim() : formData.location;
+
     // Basic client validation
-    if (!formData.itemName || !formData.category || !formData.location || !formData.itemDate) {
+    if (!formData.itemName.trim() || !finalCategory || !finalLocation || !formData.itemDate) {
       setError('Please fill all required fields');
       return;
     }
@@ -76,13 +84,13 @@ const CreatePost = () => {
     try {
       const fd = new FormData();
       fd.append('postType', formData.postType);
-      fd.append('itemName', formData.itemName);
-      fd.append('category', formData.category);
-      fd.append('location', formData.location);
+      fd.append('itemName', formData.itemName.trim());
+      fd.append('category', finalCategory);
+      fd.append('location', finalLocation);
       fd.append('itemDate', formData.itemDate);
-      fd.append('description', formData.description);
-      fd.append('contactEmail', formData.contactEmail || user?.email || '');
-      fd.append('contactPhone', formData.contactPhone);
+      fd.append('description', formData.description.trim());
+      fd.append('contactEmail', formData.contactEmail ? formData.contactEmail.trim() : user?.email || '');
+      fd.append('contactPhone', formData.contactPhone.trim());
       fd.append('isContactPublic', String(formData.isContactPublic));
       images.forEach((img) => fd.append('images', img));
 
@@ -146,22 +154,57 @@ const CreatePost = () => {
               required
             />
           </div>
-          <Select
-            label="Category *"
-            name="category"
-            options={CATEGORIES}
-            value={formData.category}
-            onChange={handleChange}
-            required
-          />
-          <Select
-            label="Location *"
-            name="location"
-            options={LOCATIONS}
-            value={formData.location}
-            onChange={handleChange}
-            required
-          />
+
+          {/* Category Dropdown */}
+          <div className={formData.category === 'other' ? 'md:col-span-1' : 'md:col-span-1'}>
+            <Select
+              label="Category *"
+              name="category"
+              options={CATEGORIES}
+              value={formData.category}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          {/* Custom Category Input */}
+          {formData.category === 'other' ? (
+            <div className="md:col-span-1">
+              <Input
+                label="Specify Category *"
+                value={customCategory}
+                onChange={(e) => setCustomCategory(e.target.value)}
+                placeholder="e.g. Power Bank, Water Bottle, etc."
+                required
+              />
+            </div>
+          ) : null}
+
+          {/* Location Dropdown */}
+          <div className={formData.location === 'other' ? 'md:col-span-1' : 'md:col-span-1'}>
+            <Select
+              label="Location *"
+              name="location"
+              options={LOCATIONS}
+              value={formData.location}
+              onChange={handleChange}
+              required
+            />
+          </div>
+
+          {/* Custom Location Input */}
+          {formData.location === 'other' ? (
+            <div className="md:col-span-1">
+              <Input
+                label="Specify Location *"
+                value={customLocation}
+                onChange={(e) => setCustomLocation(e.target.value)}
+                placeholder="e.g. Lab 3rd Floor, Gymnasium, etc."
+                required
+              />
+            </div>
+          ) : null}
+
           <div className="md:col-span-2">
             <Input
               label="Date & Time *"

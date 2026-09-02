@@ -1,7 +1,7 @@
 import User from '../models/User.js';
 import generateToken from '../utils/generateToken.js';
 
-// @desc    Register new user
+// @desc    Register new student
 // @route   POST /api/auth/register
 // @access  Public
 export const register = async (req, res) => {
@@ -16,38 +16,48 @@ export const register = async (req, res) => {
       password,
     } = req.body;
 
-    // ✅ Basic validation — required fields
     if (!fullName || !studentId || !email || !department || !batch || !password) {
       return res.status(400).json({
         message: 'Please provide all required fields: fullName, studentId, email, department, batch, password',
       });
     }
 
-    // ✅ Trim inputs
     const trimmedName = fullName.trim();
     const trimmedStudentId = studentId.trim();
     const trimmedEmail = email.trim().toLowerCase();
     const trimmedPhone = phone ? phone.trim() : '';
     const trimmedBatch = batch.trim();
+    const trimmedDept = department.trim().toLowerCase();
 
-    // ✅ Email format validation
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(trimmedEmail)) {
       return res.status(400).json({ message: 'Invalid email format' });
     }
 
-    // ✅ Password length check
     if (password.length < 6) {
       return res.status(400).json({ message: 'Password must be at least 6 characters' });
     }
 
-    // ✅ Department validation
-    const allowedDepartments = ['cse', 'eee', 'ece', 'bba', 'english', 'law', 'other'];
-    if (!allowedDepartments.includes(department)) {
-      return res.status(400).json({ message: 'Invalid department' });
+    // ✅ SWE সহ পূর্ণাঙ্গ ডিপার্টমেন্ট ভ্যালিডেশন
+    const allowedDepartments = [
+      'cse',
+      'swe',
+      'eee',
+      'ece',
+      'bba',
+      'english',
+      'law',
+      'pharmacy',
+      'architecture',
+      'mathematics',
+      'physics',
+      'other',
+    ];
+
+    if (!allowedDepartments.includes(trimmedDept)) {
+      return res.status(400).json({ message: 'Invalid department selected' });
     }
 
-    // ✅ Duplicate check — email OR studentId
     const existingUser = await User.findOne({
       $or: [{ email: trimmedEmail }, { studentId: trimmedStudentId }],
     });
@@ -59,20 +69,18 @@ export const register = async (req, res) => {
       return res.status(400).json({ message: `${field} already exists` });
     }
 
-    // ✅ Create user
     const user = await User.create({
       fullName: trimmedName,
       studentId: trimmedStudentId,
       email: trimmedEmail,
       phone: trimmedPhone,
-      department,
+      department: trimmedDept,
       batch: trimmedBatch,
       password,
       status: 'pending',
       role: 'student',
     });
 
-    // ✅ Return response without password
     return res.status(201).json({
       message: 'Registration successful! Please wait for admin approval before logging in.',
       user: {
@@ -94,35 +102,34 @@ export const register = async (req, res) => {
   }
 };
 
-// @desc    Login user (using studentId only)
+// @desc    Login student (studentId only, block admin)
 // @route   POST /api/auth/login
 // @access  Public
 export const login = async (req, res) => {
   try {
     const { studentId, password } = req.body;
 
-    // ✅ Required fields validation
     if (!studentId || !password) {
       return res.status(400).json({ message: 'Please provide student ID and password' });
     }
 
     const trimmedCredential = studentId.trim();
-
-    // ✅ Find user by studentId only
     const user = await User.findOne({ studentId: trimmedCredential });
 
-    // ✅ User existence check
     if (!user) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // ✅ Password match check
+    // Block admin from student login
+    if (user.role === 'admin') {
+      return res.status(403).json({ message: 'Please use the admin login page' });
+    }
+
     const isMatch = await user.matchPassword(password);
     if (!isMatch) {
       return res.status(401).json({ message: 'Invalid credentials' });
     }
 
-    // ✅ Account status check
     if (user.status === 'pending') {
       return res.status(403).json({
         message: 'Your account is pending approval. Please wait for admin verification.',
@@ -135,7 +142,6 @@ export const login = async (req, res) => {
       });
     }
 
-    // ✅ Generate token and return
     return res.status(200).json({
       message: 'Login successful',
       token: generateToken(user._id),
@@ -155,6 +161,47 @@ export const login = async (req, res) => {
 
   } catch (error) {
     console.error('Login Error:', error.message);
+    return res.status(500).json({ message: 'Server error. Please try again later.' });
+  }
+};
+
+// @desc    Login admin (email + password only)
+// @route   POST /api/auth/admin-login
+// @access  Public
+export const adminLogin = async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ message: 'Please provide email and password' });
+    }
+
+    const trimmedEmail = email.trim().toLowerCase();
+    const user = await User.findOne({ email: trimmedEmail });
+
+    if (!user || !(await user.matchPassword(password))) {
+      return res.status(401).json({ message: 'Invalid credentials' });
+    }
+
+    if (user.role !== 'admin') {
+      return res.status(403).json({ message: 'Not authorized as admin' });
+    }
+
+    return res.status(200).json({
+      message: 'Admin login successful',
+      token: generateToken(user._id),
+      user: {
+        id: user._id,
+        fullName: user.fullName,
+        studentId: user.studentId,
+        email: user.email,
+        role: user.role,
+        status: user.status,
+      },
+    });
+
+  } catch (error) {
+    console.error('AdminLogin Error:', error.message);
     return res.status(500).json({ message: 'Server error. Please try again later.' });
   }
 };

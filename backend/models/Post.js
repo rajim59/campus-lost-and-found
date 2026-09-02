@@ -20,7 +20,7 @@ const postSchema = new mongoose.Schema(
     category: {
       type: String,
       required: true,
-      enum: ['id_card', 'wallet', 'phone', 'book', 'key', 'other'],
+      trim: true,
     },
     description: {
       type: String,
@@ -30,7 +30,7 @@ const postSchema = new mongoose.Schema(
     location: {
       type: String,
       required: true,
-      enum: ['library', 'cafeteria', 'dormitory', 'academic_building', 'playground', 'other'],
+      trim: true,
     },
     itemDate: {
       type: Date,

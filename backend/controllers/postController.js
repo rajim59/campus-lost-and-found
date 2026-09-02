@@ -38,7 +38,7 @@ export const getAllPosts = async (req, res) => {
     // Count and fetch
     const total = await Post.countDocuments(query);
     const posts = await Post.find(query)
-      .populate('userId', 'fullName studentId department batch')
+      .populate('userId', 'fullName studentId department batch profileImage')
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limitNum);
@@ -93,7 +93,7 @@ export const createPost = async (req, res) => {
       isContactPublic,
     } = req.body;
 
-    // ✅ Required fields validation
+    // ✅ Required fields presence validation
     if (!postType || !itemName || !category || !location || !itemDate) {
       return res.status(400).json({
         message: 'Please provide postType, itemName, category, location, itemDate',
@@ -105,23 +105,13 @@ export const createPost = async (req, res) => {
       return res.status(400).json({ message: 'Invalid postType' });
     }
 
-    // ✅ category validation
-    const allowedCategories = ['id_card', 'wallet', 'phone', 'book', 'key', 'other'];
-    if (!allowedCategories.includes(category)) {
-      return res.status(400).json({ message: 'Invalid category' });
+    // ✅ Non-empty string validation for category and location (supports custom inputs)
+    if (!category.trim()) {
+      return res.status(400).json({ message: 'Please provide a valid category' });
     }
 
-    // ✅ location validation
-    const allowedLocations = [
-      'library',
-      'cafeteria',
-      'dormitory',
-      'academic_building',
-      'playground',
-      'other',
-    ];
-    if (!allowedLocations.includes(location)) {
-      return res.status(400).json({ message: 'Invalid location' });
+    if (!location.trim()) {
+      return res.status(400).json({ message: 'Please provide a valid location' });
     }
 
     // ✅ Date validation
@@ -146,9 +136,9 @@ export const createPost = async (req, res) => {
       userId: req.user._id,
       postType,
       itemName: itemName.trim(),
-      category,
+      category: category.trim(),
       description: description ? description.trim() : '',
-      location,
+      location: location.trim(),
       itemDate: date,
       images,
       contactEmail: finalContactEmail,
@@ -216,27 +206,20 @@ export const updatePost = async (req, res) => {
     if (contactEmail !== undefined) post.contactEmail = contactEmail.trim();
     if (contactPhone !== undefined) post.contactPhone = contactPhone.trim();
 
+    // ✅ Non-empty string check for category
     if (category !== undefined) {
-      const allowedCategories = ['id_card', 'wallet', 'phone', 'book', 'key', 'other'];
-      if (!allowedCategories.includes(category)) {
-        return res.status(400).json({ message: 'Invalid category' });
+      if (!category.trim()) {
+        return res.status(400).json({ message: 'Category cannot be empty' });
       }
-      post.category = category;
+      post.category = category.trim();
     }
 
+    // ✅ Non-empty string check for location
     if (location !== undefined) {
-      const allowedLocations = [
-        'library',
-        'cafeteria',
-        'dormitory',
-        'academic_building',
-        'playground',
-        'other',
-      ];
-      if (!allowedLocations.includes(location)) {
-        return res.status(400).json({ message: 'Invalid location' });
+      if (!location.trim()) {
+        return res.status(400).json({ message: 'Location cannot be empty' });
       }
-      post.location = location;
+      post.location = location.trim();
     }
 
     if (itemDate !== undefined) {
@@ -251,9 +234,8 @@ export const updatePost = async (req, res) => {
       post.isContactPublic = isContactPublic === 'false' || isContactPublic === false ? false : true;
     }
 
-    // ✅ Image update: if new files uploaded, replace old ones (remove old files)
+    // ✅ Image update: replace old files if new ones uploaded
     if (req.files && req.files.length > 0) {
-      // Delete old image files
       if (post.images && post.images.length > 0) {
         post.images.forEach((oldImage) => {
           const oldPath = path.join(process.cwd(), 'uploads', oldImage);
@@ -328,7 +310,7 @@ export const deletePost = async (req, res) => {
       });
     }
 
-    // ✅ Delete associated claims (optional but good practice)
+    // ✅ Delete associated claims
     await Claim.deleteMany({ postId: post._id });
 
     // ✅ Delete post
@@ -346,7 +328,7 @@ export const deletePost = async (req, res) => {
 // CLAIM SYSTEM
 // =============================================
 
-// @desc    Submit a claim on a Found post
+// @desc    Submit a claim on a Post (Lost or Found)
 // @route   POST /api/posts/:id/claim
 // @access  Private (Verified Student only)
 export const submitClaim = async (req, res) => {
@@ -365,9 +347,9 @@ export const submitClaim = async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // ✅ Check post type is found
-    if (post.postType !== 'found') {
-      return res.status(400).json({ message: 'You can only claim on found items' });
+    // ✅ Check post type is either lost or found
+    if (!['lost', 'found'].includes(post.postType)) {
+      return res.status(400).json({ message: 'Invalid post type for claim' });
     }
 
     // ✅ Check post status is open
@@ -417,9 +399,9 @@ export const submitClaim = async (req, res) => {
   }
 };
 
-// @desc    Get all claims for a post
+// @desc    Get all claims for a post (public)
 // @route   GET /api/posts/:id/claims
-// @access  Private (Post Owner or Admin only)
+// @access  Public
 export const getClaimsByPost = async (req, res) => {
   try {
     const post = await Post.findById(req.params.id);
@@ -427,16 +409,9 @@ export const getClaimsByPost = async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    // ✅ Authorization: post owner or admin
-    const isOwner = post.userId.toString() === req.user._id.toString();
-    const isAdmin = req.user.role === 'admin';
-    if (!isOwner && !isAdmin) {
-      return res.status(403).json({ message: 'Not authorized to view claims' });
-    }
-
-    // ✅ Get claims with claimant details
+    // ✅ Get public claims with safe claimant details
     const claims = await Claim.find({ postId: post._id })
-      .populate('claimantUserId', 'fullName studentId email department batch')
+      .populate('claimantUserId', 'fullName studentId department batch profileImage')
       .sort({ createdAt: -1 });
 
     return res.status(200).json({ claims });
