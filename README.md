@@ -1,36 +1,38 @@
 # 🎓 Campus Lost & Found Management System
 
-A full-stack web application designed for university campuses to help students report lost items, find found belongings, and reconnect with their owners through a verified and secure platform.
+A full-stack web application designed for university campuses to help students report lost items, find found belongings, and reconnect items with their rightful owners through a verified and secure platform.
 
 ---
 
 ## 📋 Table of Contents
 
-- [Project Overview](#project-overview)
-- [Key Features](#key-features)
-- [Technology Stack](#technology-stack)
-- [Folder Structure](#folder-structure)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [API Documentation](#api-documentation)
-- [User Roles](#user-roles)
-- [Team Members](#team-members)
-- [Project Status](#project-status)
-- [License](#license)
+* [Project Overview](#project-overview)
+* [Key Features](#key-features)
+* [Technology Stack](#technology-stack)
+* [Project Structure](#project-structure)
+* [Getting Started](#getting-started)
+* [Environment Variables](#environment-variables)
+* [API Documentation](#api-documentation)
+* [User Roles](#user-roles)
+* [Team Members](#team-members)
+* [Project Status](#project-status)
+* [License](#license)
 
 ---
 
 ## 📌 Project Overview
 
-Campus Lost & Found is a platform where verified university students can:
+**Campus Lost & Found** is a secure platform that helps university students report lost or found belongings and reconnect them with their rightful owners.
 
-- Post items they have **lost** or **found**
-- Search and filter posts by category, location, and status
-- Submit claims on found items
-- Track claim status through admin verification
-- Manage their own posts
+Verified university students can:
 
-The system ensures trust by requiring **admin approval** for every student registration. Only verified students can create posts and submit claims.
+* Report items they have **lost** or **found**
+* Search and filter available posts
+* Submit claims for found items
+* Track their claim status
+* Manage their own posts
+
+To maintain trust and security, every student registration requires **admin approval**. Only verified students can create posts and submit claims.
 
 ---
 
@@ -38,90 +40,104 @@ The system ensures trust by requiring **admin approval** for every student regis
 
 ### 🔐 Authentication & Verification
 
-- Student registration with university ID
-- Admin approval for new registrations
-- JWT-based authentication
-- Separate admin login panel
-- Role-based access control
+* Student registration using university ID
+* Admin approval for new student registrations
+* JWT-based authentication
+* Password hashing using bcryptjs
+* Separate admin login
+* Role-based access control
 
 ### 📝 Post Management
 
-- Create Lost/Found posts
-- Upload up to 3 images per post
-- Custom category and location input
-- Edit and delete own posts
-- Post status tracking (Open → Claimed → Resolved)
+* Create Lost/Found posts
+* Upload up to 3 images per post
+* Add custom categories and locations
+* Edit own posts
+* Delete own posts
+* Track post status:
 
-### 🔍 Search & Filter
+  * Open
+  * Claimed
+  * Resolved
 
-- Keyword search
-- Filter by type (Lost/Found)
-- Filter by category
-- Filter by location
-- Pagination
+### 🔍 Search & Filtering
+
+* Keyword-based search
+* Filter by Lost/Found type
+* Filter by category
+* Filter by location
+* Pagination support
 
 ### 🛡️ Admin Panel
 
-- Dedicated admin dashboard
-- User verification (approve/reject)
-- Post moderation (delete inappropriate posts)
-- Claim management (accept/reject with deadlines)
+* Dedicated admin dashboard
+* Approve or reject student registrations
+* Moderate posts
+* Delete inappropriate posts
+* Manage submitted claims
+* Accept or reject claims
+* Manage claim deadlines
 
 ### 💬 Claim System
 
-- Submit claim on found items
-- Finders can claim lost items
-- Public claim activity section showing name, ID, and message
-- Admin resolves claims with accept/reject actions
-- Automatic status updates
+* Submit claims for found items
+* View claim activity
+* Track personal claim status
+* Admin verification of claims
+* Accept/reject claim functionality
+* Automatic post status updates
 
 ---
 
 ## 🧰 Technology Stack
 
-| Layer | Technology |
-|--------|------------|
-| Frontend | React 18, Tailwind CSS, Lucide Icons |
-| Backend | Node.js, Express.js |
-| Database | MongoDB, Mongoose |
-| Authentication | JWT, bcryptjs |
-| File Upload | Multer (local storage) |
-| Routing | React Router DOM v6 |
+| Layer          | Technology                           |
+| -------------- | ------------------------------------ |
+| Frontend       | React 18, Tailwind CSS, Lucide Icons |
+| Backend        | Node.js, Express.js                  |
+| Database       | MongoDB, Mongoose                    |
+| Authentication | JWT, bcryptjs                        |
+| File Upload    | Multer                               |
+| Routing        | React Router DOM v6                  |
 
 ---
 
-## 📁 Folder Structure
+## 📁 Project Structure
 
 ```text
 campus-lost-found/
+│
 ├── frontend/
 │   ├── public/
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── ui/             # Reusable UI components (Locked)
-│   │   │   ├── layout/         # Page layouts (Locked)
-│   │   │   ├── routing/        # Route guards (Locked)
-│   │   │   └── shared/         # Page-specific components (Open)
-│   │   ├── pages/              # All page components (Open)
-│   │   ├── contexts/           # AuthContext (Locked)
-│   │   ├── services/           # API service layer (Locked)
-│   │   ├── utils/              # Constants & helpers (Locked)
-│   │   ├── App.jsx             # Main routing (Locked)
-│   │   └── main.jsx            # Entry point (Locked)
-│   ├── tailwind.config.js      # Design tokens (Locked)
+│   │   │   ├── ui/
+│   │   │   ├── layout/
+│   │   │   ├── routing/
+│   │   │   └── shared/
+│   │   ├── pages/
+│   │   ├── contexts/
+│   │   ├── services/
+│   │   ├── utils/
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── tailwind.config.js
 │   └── package.json
 │
 ├── backend/
 │   ├── config/
-│   │   └── db.js               # MongoDB connection (Locked)
-│   ├── models/                 # Database schemas (Locked)
-│   ├── routes/                 # API routes (Locked)
-│   ├── controllers/            # Business logic (Open)
-│   ├── middleware/             # Auth, upload, error handlers (Locked)
-│   ├── utils/                  # Helper functions (Locked)
-│   ├── uploads/                # Local image storage
-│   ├── app.js                  # Express app config (Locked)
-│   └── server.js               # Server bootstrap (Locked)
+│   │   └── db.js
+│   ├── models/
+│   ├── routes/
+│   ├── controllers/
+│   ├── middleware/
+│   ├── utils/
+│   ├── uploads/
+│   ├── app.js
+│   ├── server.js
+│   └── package.json
+│
+└── README.md
 ```
 
 ---
@@ -130,66 +146,86 @@ campus-lost-found/
 
 ### Prerequisites
 
-- Node.js (v18 or higher)
-- MongoDB (local or Atlas)
-- npm or yarn
+Make sure the following are installed:
 
-### Installation
+* [Node.js](https://nodejs.org/) v18 or higher
+* MongoDB or MongoDB Atlas
+* npm or Yarn
+* Git
 
-#### 1. Clone the repository
+### 1. Clone the Repository
 
 ```bash
 git clone <repository-url>
 cd campus-lost-found
 ```
 
-#### 2. Backend setup
+### 2. Backend Setup
 
 ```bash
 cd backend
 npm install
-cp .env.example .env
+```
 
-# Edit .env with your MongoDB URI and JWT secret
+Create a `.env` file in the `backend` directory and add the required environment variables.
 
+Then start the backend server:
+
+```bash
 npm run dev
 ```
 
-#### 3. Frontend setup
+### 3. Frontend Setup
+
+Open a new terminal and run:
 
 ```bash
-cd ../frontend
+cd frontend
 npm install
 npm run dev
 ```
 
-#### 4. Create admin user (one time)
+### 4. Create Admin User
+
+Run the following command once if the project includes the admin seed script:
 
 ```bash
 cd backend
 npm run seed:admin
 ```
 
-### Access the Application
+### 🌐 Access the Application
 
-- Frontend: http://localhost:5173
-- Backend API: http://localhost:3000
-- Admin Login: http://localhost:5173/admin/login
+| Service     | URL                                 |
+| ----------- | ----------------------------------- |
+| Frontend    | `http://localhost:5173`             |
+| Backend API | `http://localhost:5000`             |
+| Admin Login | `http://localhost:5173/admin/login` |
 
 ---
 
 ## 🔑 Environment Variables
 
-Create a `.env` file in the `backend` directory:
+Create a `.env` file inside the `backend` directory:
 
 ```env
 PORT=5000
 MONGO_URI=mongodb://localhost:27017/campus_lost_found
-JWT_SECRET=your_super_secret_key_here
+JWT_SECRET=your_super_secret_key
 NODE_ENV=development
 
 ADMIN_EMAIL=admin@campus.edu
-ADMIN_PASSWORD=admin123
+ADMIN_PASSWORD=your_secure_admin_password
+```
+
+> **Security Note:** Never commit your `.env` file or real credentials to GitHub.
+
+Add `.env` to your `.gitignore` file:
+
+```gitignore
+.env
+node_modules/
+uploads/
 ```
 
 ---
@@ -198,77 +234,81 @@ ADMIN_PASSWORD=admin123
 
 ### Authentication
 
-| Method | Endpoint | Description | Access |
-|---------|----------|-------------|--------|
-| POST | `/api/auth/register` | Register new student | Public |
-| POST | `/api/auth/login` | Student login | Public |
-| POST | `/api/auth/admin-login` | Admin login | Public |
-| GET | `/api/auth/me` | Get current user | Private |
+| Method | Endpoint                | Description            | Access  |
+| ------ | ----------------------- | ---------------------- | ------- |
+| POST   | `/api/auth/register`    | Register a new student | Public  |
+| POST   | `/api/auth/login`       | Student login          | Public  |
+| POST   | `/api/auth/admin-login` | Admin login            | Public  |
+| GET    | `/api/auth/me`          | Get current user       | Private |
 
 ### Posts
 
-| Method | Endpoint | Description | Access |
-|---------|----------|-------------|--------|
-| GET | `/api/posts` | Get all posts (with filters) | Public |
-| GET | `/api/posts/:id` | Get single post | Public |
-| POST | `/api/posts` | Create post | Verified Student |
-| PUT | `/api/posts/:id` | Update post | Post Owner |
-| DELETE | `/api/posts/:id` | Delete post | Post Owner |
+| Method | Endpoint         | Description                | Access           |
+| ------ | ---------------- | -------------------------- | ---------------- |
+| GET    | `/api/posts`     | Get all posts with filters | Public           |
+| GET    | `/api/posts/:id` | Get a single post          | Public           |
+| POST   | `/api/posts`     | Create a new post          | Verified Student |
+| PUT    | `/api/posts/:id` | Update own post            | Post Owner       |
+| DELETE | `/api/posts/:id` | Delete own post            | Post Owner       |
 
 ### Claims
 
-| Method | Endpoint | Description | Access |
-|---------|----------|-------------|--------|
-| POST | `/api/posts/:id/claim` | Submit claim | Verified Student |
-| GET | `/api/posts/:id/claims` | Get claims for a post | Public |
-| GET | `/api/claims/my` | Get current user's claims | Private |
+| Method | Endpoint                | Description               | Access           |
+| ------ | ----------------------- | ------------------------- | ---------------- |
+| POST   | `/api/posts/:id/claim`  | Submit a claim            | Verified Student |
+| GET    | `/api/posts/:id/claims` | Get claims for a post     | Public           |
+| GET    | `/api/claims/my`        | Get current user's claims | Private          |
 
 ### Admin
 
-| Method | Endpoint | Description | Access |
-|---------|----------|-------------|--------|
-| GET | `/api/admin/pending-users` | Get pending users | Admin |
-| PUT | `/api/admin/verify-user/:id` | Approve/Reject user | Admin |
-| GET | `/api/admin/posts` | Get all posts | Admin |
-| DELETE | `/api/admin/posts/:id` | Delete any post | Admin |
-| GET | `/api/admin/claims` | Get all claims | Admin |
-| PUT | `/api/admin/claims/:id/accept` | Accept claim | Admin |
-| PUT | `/api/admin/claims/:id/reject` | Reject claim | Admin |
+| Method | Endpoint                       | Description         | Access |
+| ------ | ------------------------------ | ------------------- | ------ |
+| GET    | `/api/admin/pending-users`     | Get pending users   | Admin  |
+| PUT    | `/api/admin/verify-user/:id`   | Approve/reject user | Admin  |
+| GET    | `/api/admin/posts`             | Get all posts       | Admin  |
+| DELETE | `/api/admin/posts/:id`         | Delete any post     | Admin  |
+| GET    | `/api/admin/claims`            | Get all claims      | Admin  |
+| PUT    | `/api/admin/claims/:id/accept` | Accept a claim      | Admin  |
+| PUT    | `/api/admin/claims/:id/reject` | Reject a claim      | Admin  |
 
 ---
 
 ## 👥 User Roles
 
-| Role | Capabilities |
-|--------|-------------|
-| **Guest** | View posts, search and filter |
-| **Verified Student** | Create/Edit/Delete own posts, submit claims |
-| **Admin** | Verify users, moderate posts, resolve claims |
+| Role                 | Capabilities                                      |
+| -------------------- | ------------------------------------------------- |
+| **Guest**            | View posts, search, and filter                    |
+| **Verified Student** | Create, edit, and delete own posts; submit claims |
+| **Admin**            | Verify users, moderate posts, and resolve claims  |
 
 ---
 
 ## 👨‍💻 Team Members
 
-| Name | Role |
-|--------|------|
-| Sobuj | Project Lead — Architecture, Auth, Post & Claim Backend |
-| Atikul | Backend Developer — Post APIs, Student Pages |
-| Al Fahim | Admin Panel Developer |
-| Abdur Rahman | QA, Documentation, Public Pages |
+| Name             | Role                                                              |
+| ---------------- | ----------------------------------------------------------------- |
+| **Sobuj**        | Project Lead — Architecture, Authentication, Post & Claim Backend |
+| **Atikul**       | Backend Developer — Post APIs & Student Pages                     |
+| **Al Fahim**     | Admin Panel Developer                                             |
+| **Abdur Rahman** | QA, Documentation & Public Pages                                  |
 
 ---
 
 ## 📊 Project Status
 
-| Phase | Status |
-|--------|--------|
+| Phase               | Status     |
+| ------------------- | ---------- |
 | Frontend Foundation | ✅ Complete |
-| Backend Foundation | ✅ Complete |
-| Authentication | ✅ Complete |
-| Post Management | ✅ Complete |
-| Claim System | ✅ Complete |
-| Admin Panel | ✅ Complete |
-| Image Upload (Local) | ✅ Complete |
-| Final Testing | 🔄 In Progress |
+| Backend Foundation  | ✅ Complete |
+| Authentication      | ✅ Complete |
+| Post Management     | ✅ Complete |
+| Claim System        | ✅ Complete |
+| Admin Panel         | ✅ Complete |
+| Local Image Upload  | ✅ Complete |
+| Final Testing       | ✅ Complete |
 
 ---
+
+## 📄 License
+
+This project was developed as an academic project for educational purposes.
