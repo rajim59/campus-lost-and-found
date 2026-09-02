@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Upload, X } from 'lucide-react';
 import Button from '../components/ui/Button';
@@ -13,6 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
 const CreatePost = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
+  const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
     postType: 'lost',
@@ -36,22 +37,27 @@ const CreatePost = () => {
   // Handle image selection
   const handleImageChange = (e) => {
     const files = Array.from(e.target.files);
+    if (!files.length) return;
+
     if (images.length + files.length > 3) {
       setError('Maximum 3 images allowed');
+      if (fileInputRef.current) fileInputRef.current.value = '';
       return;
     }
     setError('');
+    
+    // প্রিভিউ তৈরি
+    const newPreviews = files.map((file) => URL.createObjectURL(file));
+    setPreviews((prev) => [...prev, ...newPreviews]);
     setImages((prev) => [...prev, ...files]);
-    files.forEach((file) => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPreviews((prev) => [...prev, reader.result]);
-      };
-      reader.readAsDataURL(file);
-    });
+
+    // ইনপুট রিসেট করা যাতে একই ফাইল পুনরায় সিলেক্ট করা যায়
+    if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
   const removeImage = (index) => {
+    // মেমরি লিক এড়াতে প্রিভিউ অবজেক্ট ইউআরএল রিভোক করা
+    URL.revokeObjectURL(previews[index]);
     setImages((prev) => prev.filter((_, i) => i !== index));
     setPreviews((prev) => prev.filter((_, i) => i !== index));
   };
@@ -68,13 +74,13 @@ const CreatePost = () => {
     e.preventDefault();
     setError('');
 
-    // ✅ "other" সিলেক্ট থাকলে কাস্টম ইনপুট, অন্যথায় সিলেক্টেড ভ্যালু
+    // "other" সিলেক্ট থাকলে কাস্টম ইনপুট, অন্যথায় সিলেক্টেড ভ্যালু
     const finalCategory =
       formData.category === 'other' ? customCategory.trim() : formData.category;
     const finalLocation =
       formData.location === 'other' ? customLocation.trim() : formData.location;
 
-    // Basic client validation
+    // ভ্যালিডেশন
     if (!formData.itemName.trim() || !finalCategory || !finalLocation || !formData.itemDate) {
       setError('Please fill all required fields');
       return;
@@ -92,6 +98,8 @@ const CreatePost = () => {
       fd.append('contactEmail', formData.contactEmail ? formData.contactEmail.trim() : user?.email || '');
       fd.append('contactPhone', formData.contactPhone.trim());
       fd.append('isContactPublic', String(formData.isContactPublic));
+      
+      // ফাইল অ্যাপেন্ড
       images.forEach((img) => fd.append('images', img));
 
       await createPost(fd);
@@ -155,8 +163,8 @@ const CreatePost = () => {
             />
           </div>
 
-          {/* Category Dropdown */}
-          <div className={formData.category === 'other' ? 'md:col-span-1' : 'md:col-span-1'}>
+          {/* Category */}
+          <div className="md:col-span-1">
             <Select
               label="Category *"
               name="category"
@@ -180,8 +188,8 @@ const CreatePost = () => {
             </div>
           ) : null}
 
-          {/* Location Dropdown */}
-          <div className={formData.location === 'other' ? 'md:col-span-1' : 'md:col-span-1'}>
+          {/* Location */}
+          <div className="md:col-span-1">
             <Select
               label="Location *"
               name="location"
@@ -235,6 +243,7 @@ const CreatePost = () => {
           <div className="border-2 border-dashed border-border rounded-card p-6 text-center hover:bg-background transition-colors">
             <input
               type="file"
+              ref={fileInputRef}
               accept="image/jpeg,image/png"
               multiple
               onChange={handleImageChange}
@@ -250,7 +259,7 @@ const CreatePost = () => {
             <div className="flex gap-3 mt-3">
               {previews.map((src, index) => (
                 <div key={index} className="relative h-20 w-20 rounded-card overflow-hidden border border-border">
-                  <img src={src} alt="" className="h-full w-full object-cover" />
+                  <img src={src} alt="Upload preview" className="h-full w-full object-cover" />
                   <button
                     type="button"
                     onClick={() => removeImage(index)}

@@ -173,7 +173,7 @@ npm run seed:admin
 ### Access the Application
 
 - Frontend: http://localhost:5173
-- Backend API: http://localhost:5000
+- Backend API: http://localhost:3000
 - Admin Login: http://localhost:5173/admin/login
 
 ---
