@@ -5,6 +5,7 @@ Al Fahim is responsible for building the complete admin panel interface and impl
 
 ## Key Responsibilities
 
+
 ### 1. Admin Backend Implementation
 - Implemented `getAllPosts` (admin) — List all posts
 - Implemented `deletePost` (admin) — Delete any post with image cleanup
